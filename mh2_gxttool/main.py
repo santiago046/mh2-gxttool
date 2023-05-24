@@ -18,36 +18,51 @@ import argparse
 import click
 import pathlib
 
-from mh2_gxttool import GXTFile
+from mh2_gxttool.gxtfile import GXTFile
 
 
+# Common options
+force_option = click.option(
+    "-f",
+    "--force",
+    help="force overwrite existing file",
+    is_flag=True,
+)
+platform_opt = click.option(
+    "-p",
+    "--platform",
+    default="PSP",
+    help="GXT game platform (default: PSP)",
+    type=click.Choice(["PC", "PSP", "PS2"], case_sensitive=False),
+)
+src_argument = click.argument(
+    "src_file", type=click.Path(exists=True, dir_okay=False, readable=True)
+)
+
+
+# Start of CLI
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 def cli():
     """A CLI tool to pack/unpack GXT files from Manhunt 2."""
     pass
 
 
+# Pack command
 @cli.command(help="Pack a TOML document to a GXT file")
-@click.option(
-    "-f",
-    "--force",
-    is_flag=True,
-    help="force destination file overwriting (default: False)",
-)
+@force_option
 @click.option(
     "-o",
     "--output",
     "dst_file",
+    help="output file name (default: change src_file extension to .gxt)",
     type=click.Path(dir_okay=False),
-    help="output file name (default: change src_file extension to .toml)",
 )
-@click.argument(
-    "src_file", type=click.Path(exists=True, dir_okay=False, readable=True)
-)
-def pack(force, dst_file, src_file):
+@platform_opt
+@src_argument
+def pack(platform, force, dst_file, src_file):
     src_file = pathlib.Path(src_file)
 
-    if dst_file == None:
+    if dst_file is None:
         dst_file = src_file.with_suffix(".gxt")
     else:
         dst_file = pathlib.Path(dst_file)
@@ -57,30 +72,25 @@ def pack(force, dst_file, src_file):
             f"{dst_file} already exist. Use -f to overwrite"
         )
 
-    GXTFile.pack(src_file, dst_file)
+    GXTFile.pack(src_file, dst_file, platform)
 
 
+# Unpack command
 @cli.command(help="Unpack a GXT file to a TOML document")
-@click.option(
-    "-f",
-    "--force",
-    is_flag=True,
-    help="force destination file overwriting (default: False)",
-)
+@force_option
 @click.option(
     "-o",
     "--output",
     "dst_file",
+    help="output file name (default: change src_file extension to .toml)",
     type=click.Path(dir_okay=False),
-    help="output file name (default: change src_file extension to .gxt)",
 )
-@click.argument(
-    "src_file", type=click.Path(exists=True, dir_okay=False, readable=True)
-)
-def unpack(force, dst_file, src_file):
+@platform_opt
+@src_argument
+def unpack(platform, force, dst_file, src_file):
     src_file = pathlib.Path(src_file)
 
-    if dst_file == None:
+    if dst_file is None:
         dst_file = src_file.with_suffix(".toml")
     else:
         dst_file = pathlib.Path(dst_file)
@@ -90,7 +100,7 @@ def unpack(force, dst_file, src_file):
             f"{dst_file} already exists. Use -f to overwrite"
         )
 
-    GXTFile.unpack(src_file, dst_file)
+    GXTFile.unpack(src_file, dst_file, platform)
 
 
 if __name__ == "__main__":

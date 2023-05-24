@@ -31,16 +31,18 @@ class GXTFileFormatError(Exception):
 class GXTFile:
 
     @staticmethod
-    def pack(src_file: Path, dst_file: Path):
+    def pack(src_file: Path, dst_file: Path, platform="PSP"):
         """
         Pack a TOML document to a GXT file.
 
         Args:
             src_file: A pathlib.Path object to the TOML document to pack
             dst_file: A pathlib.Path object to the GXT file
+            platform: A string to tell the game platform, default: PSP
         """
 
         keys_info = MH2Utils._from_toml(src_file)
+        key_str_fmt = "<I12sI" if platform == "PC" else "<I8sI"
 
         with io.BytesIO() as tkey_buffer, io.BytesIO() as tdat_buffer:
             tdat_size = 0  # Used to key_data_offset too
@@ -51,7 +53,7 @@ class GXTFile:
 
                 tkey_buffer.write(
                     struct.pack(
-                        "<I8sI", key_data_offset, key_name, key_duration
+                        key_str_fmt, key_data_offset, key_name, key_duration
                     )
                 )
 
@@ -60,16 +62,6 @@ class GXTFile:
                     if value.get("console", False)
                     else MH2Utils._encode_string(value["string"])
                 )
-                """
-                if value.get("console", False):
-                    # If it is true, then encode using UTF-16LE charset. Else, MH2 charset
-                    if value["console"]:
-                        key_string_bytes = value["string"].encode("UTF-16LE") + b"\x00\x00"
-                    else:
-                        key_string_bytes = MH2Utils._encode_string(value["string"])
-                else:
-                	key_string_bytes = MH2Utils._encode_string(value["string"])
-                """
 
                 tdat_buffer.write(key_string_bytes)
                 # Update tdat size
@@ -79,7 +71,9 @@ class GXTFile:
             with dst_file.open("wb") as gxt_file:
                 # Write TKEY signature and its size
                 gxt_file.write(
-                    struct.pack("<4sI", b"TKEY", len(keys_info) * 16)
+                    struct.pack(
+                        "<4sI", b"TKEY", tkey_buffer.getbuffer().nbytes
+                    )
                 )
                 # Write TKEY data
                 gxt_file.write(tkey_buffer.getvalue())
@@ -90,17 +84,20 @@ class GXTFile:
                 gxt_file.write(tdat_buffer.getvalue())
 
     @staticmethod
-    def unpack(src_file: Path, dst_file: Path):
+    def unpack(src_file: Path, dst_file: Path, platform="PSP"):
         """
         Unpack a GXT file to a TOML document.
 
         Args:
             src_file: A pathlib.Path object to the GXT file to unpack
             dst_file: A pathlib.Path object to the TOML document file
+            platform: A string to tell the game platform, default: PSP
 
         Raises:
             InvalidGXTFileError: when src_file is not a valid GXT file
         """
+
+        key_str_fmt = struct_fmt = "<I12sI" if platform == "PC" else "<I8sI"
 
         with src_file.open("rb") as gxt_file:
             # Check TKEY
@@ -119,7 +116,7 @@ class GXTFile:
                     "duration": key_duration,
                 }
                 for key_offset, key_name, key_duration in struct.iter_unpack(
-                    "<I8sI", gxt_file.read(tkey_size)
+                    key_str_fmt, gxt_file.read(tkey_size)
                 )
             ]
 
