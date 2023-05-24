@@ -91,22 +91,22 @@ string = "Hello, world!"      # Key string
 
 ## Examples
 
-Unpack `GAME.GXT`:
+Unpack `GAME.GXT` from PSP:
 
 ```bash
-mh2-gxttool unpack path_to/GAME.GXT
+mh2-gxttool unpack -p PSP path_to/GAME.GXT
 ```
 
-Unpack it to `~/resources/` and force overwriting:
+Unpack `GAME.GXT` from PS2 to `~/resources/` and force overwriting:
 
 ```bash
-mh2-gxttool unpack -f -o ~/resources/GAME.toml path_to/GAME.GXT
+mh2-gxttool unpack -f -p PS2 -o ~/resources/GAME.toml path_to/GAME.GXT
 ```
 
-Pack it:
+Pack it to PC version:
 
 ```bash
-mh2-gxttool pack ~/resources/GAME.toml
+mh2-gxttool pack -p PC ~/resources/GAME.toml
 ```
 
 ## To do
