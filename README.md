@@ -84,7 +84,7 @@ string = "Hello, world!"      # Key string
 
 - `KEYNAME`: Maximum of 8 characters for PSP/PS2, 12 for PC.
 - `console`: Tells the packer to encode the string in UTF-16 charset, useful for strings handled by the console and not the game.
-- `duration`: Duration of the key in milliseconds.
+- `duration`: Duration of the key.
 - `string`: The key string, always inside double quotes. If the string contains a double quote, escape it using `\"`.
 
 **Note:** mh2-gxttool uses UTF-8 for the TOML files. You can check the available characters for Manhunt 2 [here](https://github.com/santiago046/manhunt2-translation-resources/blob/main/font-and-charset-info.md#manhunt-2-charset-en-fr-ge-it-sp) — please, ignore the unicode column.
