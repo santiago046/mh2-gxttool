@@ -14,8 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import tomlkit
 from pathlib import Path
+
+from natsort import natsorted
+from tomlkit import dumps, load
 
 
 class MH2Utils:
@@ -154,6 +156,7 @@ class MH2Utils:
 
     @staticmethod
     def _to_toml(gxt_name: str, data_list: list):
+        """Return a natural sorted TOML file."""
         doc = {"title": f"Decompiled {gxt_name}"}
 
         for entry in data_list:
@@ -161,13 +164,15 @@ class MH2Utils:
 
             doc[entry["name"]] = key
 
-        return tomlkit.dumps(doc)
+        doc = dict(natsorted(doc.items()))
+        return dumps(doc)
 
     @staticmethod
     def _from_toml(toml_file):
+        """Return a sorted dictionary."""
         with open(toml_file, "rt", encoding="UTF-8") as f:
-            toml_data = tomlkit.load(f)
+            toml_data = load(f)
 
             toml_data.pop("title", None)
 
-        return toml_data
+        return dict(sorted(toml_data.items()))
