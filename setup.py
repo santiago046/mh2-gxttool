@@ -5,7 +5,7 @@ with open("README.md") as rf:
 
 setup(
     name="mh2-gxttool",
-    version="2023.05.27",
+    version="2023.05.28",
     description="CLI tool to unpack/pack GXT files from Manhunt 2 PSP/PS2/PC",
     long_description=readme_file,
     long_description_content_type="text/markdown",
