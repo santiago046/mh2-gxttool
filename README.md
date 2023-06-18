@@ -77,13 +77,13 @@ title = "Decompiled FILE.GXT" # Optional, always ignored in packing mode
 
 # Key table format:
 [KEYNAME]                     # Key name
-console = ""                  # Optional, can be anything after '='
+console = true                # Optional, true or false
 duration = 192                # Integer, duration
 string = "Hello, world!"      # Key string
 ```
 
 - `KEYNAME`: Maximum of 8 characters for PSP/PS2, 12 for PC.
-- `console`: Tells the packer to encode the string in UTF-16 charset, useful for strings handled by the console and not the game.
+- `console`: Tells the packer to encode the string in UTF-16 charset when `true`, useful for strings handled by the console and not the game.
 - `duration`: Duration of the key.
 - `string`: The key string, always inside double quotes. If the string contains a double quote, escape it using `\"`.
 
