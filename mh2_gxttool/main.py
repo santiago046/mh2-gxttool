@@ -22,7 +22,13 @@ from mh2_gxttool.gxtfile import GXTFile
 
 
 # Common options
-force_option = click.option(
+charset_opt = click.option(
+    "-c",
+    "--charset-file",
+    help="A TOML file with the charset to use, see source.",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False),
+)
+force_opt = click.option(
     "-f",
     "--force",
     help="force overwrite existing file",
@@ -49,7 +55,8 @@ def cli():
 
 # Pack command
 @cli.command(help="Pack a TOML document to a GXT file")
-@force_option
+@charset_opt
+@force_opt
 @click.option(
     "-o",
     "--output",
@@ -59,7 +66,7 @@ def cli():
 )
 @platform_opt
 @src_argument
-def pack(platform, force, dst_file, src_file):
+def pack(platform, force, charset_file, dst_file, src_file):
     src_file = pathlib.Path(src_file)
 
     if dst_file is None:
@@ -72,12 +79,13 @@ def pack(platform, force, dst_file, src_file):
             f"{dst_file} already exist. Use -f to overwrite"
         )
 
-    GXTFile.pack(src_file, dst_file, platform)
+    GXTFile.pack(src_file, dst_file, platform, charset_file)
 
 
 # Unpack command
 @cli.command(help="Unpack a GXT file to a TOML document")
-@force_option
+@charset_opt
+@force_opt
 @click.option(
     "-o",
     "--output",
@@ -87,7 +95,7 @@ def pack(platform, force, dst_file, src_file):
 )
 @platform_opt
 @src_argument
-def unpack(platform, force, dst_file, src_file):
+def unpack(platform, force, charset_file, dst_file, src_file):
     src_file = pathlib.Path(src_file)
 
     if dst_file is None:
@@ -100,7 +108,7 @@ def unpack(platform, force, dst_file, src_file):
             f"{dst_file} already exists. Use -f to overwrite"
         )
 
-    GXTFile.unpack(src_file, dst_file, platform)
+    GXTFile.unpack(src_file, dst_file, platform, charset_file)
 
 
 if __name__ == "__main__":

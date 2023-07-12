@@ -31,15 +31,23 @@ class GXTFileFormatError(Exception):
 class GXTFile:
 
     @staticmethod
-    def pack(src_file: Path, dst_file: Path, platform="PSP"):
+    def pack(
+        src_file: Path, dst_file: Path, platform="PSP", charset_path=None
+    ):
         """
         Pack a TOML document to a GXT file.
 
         Args:
-            src_file: A pathlib.Path object to the TOML document to pack
-            dst_file: A pathlib.Path object to the GXT file
-            platform: A string to tell the game platform, default: PSP
+            src_file: A pathlib.Path object to the TOML document to pack.
+            dst_file: A pathlib.Path object to the GXT file.
+            platform: A string to tell the game platform, default: PSP.
+            charset_path : A string path to a TOML file with the charset, default to None/use MH2 charset.
         """
+
+        if charset_path is None:
+            charset = MH2Utils.CHARSET_INV
+        else:
+            charset = MH2Utils._load_charset_file(charset_path, inverse=True)
 
         keys_info = MH2Utils._from_toml(src_file)
         key_str_fmt = "<I12sI" if platform == "PC" else "<I8sI"
@@ -60,7 +68,7 @@ class GXTFile:
                 key_string_bytes = (
                     value["string"].encode("UTF-16LE") + b"\x00\x00"
                     if value.get("console", False)
-                    else MH2Utils._encode_string(value["string"])
+                    else MH2Utils._encode_string(value["string"], charset)
                 )
 
                 tdat_buffer.write(key_string_bytes)
@@ -84,7 +92,9 @@ class GXTFile:
                 gxt_file.write(tdat_buffer.getvalue())
 
     @staticmethod
-    def unpack(src_file: Path, dst_file: Path, platform="PSP"):
+    def unpack(
+        src_file: Path, dst_file: Path, platform="PSP", charset_path=None
+    ):
         """
         Unpack a GXT file to a TOML document.
 
@@ -92,12 +102,18 @@ class GXTFile:
             src_file: A pathlib.Path object to the GXT file to unpack
             dst_file: A pathlib.Path object to the TOML document file
             platform: A string to tell the game platform, default: PSP
+            charset_path : A string path to a TOML file with the charset, default to None/use MH2 charset.
 
         Raises:
             InvalidGXTFileError: when src_file is not a valid GXT file
         """
 
-        key_str_fmt = struct_fmt = "<I12sI" if platform == "PC" else "<I8sI"
+        if charset_path is None:
+            charset = MH2Utils.CHARSET
+        else:
+            charset = MH2Utils._load_charset_file(charset_path)
+
+        key_str_fmt = "<I12sI" if platform == "PC" else "<I8sI"
 
         with src_file.open("rb") as gxt_file:
             # Check TKEY
@@ -123,7 +139,7 @@ class GXTFile:
             # Check TDAT
             if gxt_file.read(4) != b"TDAT":
                 raise GXTFileFormatError(
-                    f"'{src_file}' is not a valid GXT file, missing TDAT signature"
+                    f"'{src_file}' is not a valid GXT file, missing TDAT field"
                 )
 
             # Next four bytes is the tdat_size in int32 LE, not used in the code
@@ -146,7 +162,7 @@ class GXTFile:
                     else:
                         key_str_data.extend(char)
 
-                key["string"] = MH2Utils._decode_string(key_str_data)
+                key["string"] = MH2Utils._decode_string(key_str_data, charset)
 
         # Write dst file
         with dst_file.open("wt", encoding="UTF-8") as toml_file:

@@ -144,19 +144,28 @@ class MH2Utils:
     })
 
     @staticmethod
-    def _decode_string(bytes_data: bytes) -> str:
-        return bytes_data.decode("UTF-16LE").translate(MH2Utils.CHARSET)
+    def _decode_string(bytes_data: bytes, charset) -> str:
+        return bytes_data.decode("UTF-16LE").translate(charset)
 
     @staticmethod
-    def _encode_string(string_data: str) -> bytes:
-        return (
-            string_data.translate(MH2Utils.CHARSET_INV).encode("UTF-16LE")
-            + b"\x00\x00"
-        )
+    def _encode_string(string_data: str, charset) -> bytes:
+        return string_data.translate(charset).encode("UTF-16LE") + b"\x00\x00"
+
+    @staticmethod
+    def _from_toml(toml_file):
+        """Return a sorted dictionary."""
+
+        with open(toml_file, "rt", encoding="UTF-8") as f:
+            toml_data = load(f)
+
+            toml_data.pop("title", None)
+
+        return dict(sorted(toml_data.items()))
 
     @staticmethod
     def _to_toml(gxt_name: str, data_list: list):
         """Return a natural sorted TOML file."""
+
         doc = {"title": f"Decompiled {gxt_name}"}
 
         for entry in data_list:
@@ -165,14 +174,16 @@ class MH2Utils:
             doc[entry["name"]] = key
 
         doc = dict(natsorted(doc.items()))
+
         return dumps(doc)
 
     @staticmethod
-    def _from_toml(toml_file):
-        """Return a sorted dictionary."""
-        with open(toml_file, "rt", encoding="UTF-8") as f:
-            toml_data = load(f)
+    def _load_charset_file(charset_file, inverse=False):
+        with open(charset_file, "rt", encoding="UTF-8") as f:
+            charset = dict(load(f))
 
-            toml_data.pop("title", None)
+        # For encoding mode
+        if inverse:
+            charset = {ord(value): key for key, value in charset.items()}
 
-        return dict(sorted(toml_data.items()))
+        return str.maketrans(charset)
