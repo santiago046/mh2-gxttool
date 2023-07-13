@@ -137,7 +137,7 @@ Here are a few examples demonstrating how to use the `mh2-gxttool`:
 
 ## To-Do
 
-- Add support for the Wii version of Manhunt 2 (it's the same as PC, but big-endian instead.
+- Add support for the Wii version of Manhunt 2 (it's the same as PC, but big-endian instead).
 - Maybe add support for Manhunt (2003).
 
 Happy modding and translating!
